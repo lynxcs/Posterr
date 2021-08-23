@@ -65,7 +65,6 @@ def processPosterMovie(movie, directory):
             print ("Found poster for " + movie.fullName + " renaming...")
             return newFile
         elif "poster" in file:
-            #print ("Found poster for " + movie.fullName)
             return os.path.join(directory, file)
         else:
             print ("Ignoring " + file + " in " + movie.fullName)
@@ -100,7 +99,6 @@ def process_movies(input_dir, output_dir):
                 if posterHash != oldPosterHash:
                     print(tcolors.OKGREEN + "Replacing poster for " + movie.fullName + tcolors.ENDC)
                     shutil.copyfile(poster, os.path.join(output_dir, directory, os.path.basename(poster)))
-                # More stuff here
                     
 
 def process_shows(input_dir, output_dir):
@@ -143,10 +141,9 @@ def run():
         print("Input directory doesn't exist!")
         exit(-1)
 
-    # Uncomment this later
-    #if not os.path.isdir(args.output_dir):
-    #    print("Output directory doesn't exist!")
-    #    exit(-1)
+    if not os.path.isdir(args.output_dir):
+        print("Output directory doesn't exist!")
+        exit(-1)
 
     if folder_type == "movie":
         process_movies(args.input_dir, args.output_dir)
