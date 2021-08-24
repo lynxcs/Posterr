@@ -72,10 +72,10 @@ def processPosterMovie(movie, directory):
     print(tcolors.FAIL + movie.fullName + " doesn't have a poster!" + tcolors.ENDC)
     return os.error
 
-def process_movies(input_dir, output_dir):
+def process_movies(input_dir, output_dir, directory_list):
     print("Processing movies")
-    directory_list = os.listdir(input_dir)
     for directory in directory_list:
+        print ("Processing directory " + directory)
         movie = Movie(directory)
         poster = processPosterMovie(movie, os.path.join(input_dir, directory))
 
@@ -98,10 +98,11 @@ def process_movies(input_dir, output_dir):
                 # If poster in the movies media directory doesn't match that in the poster directory, replace it
                 if posterHash != oldPosterHash:
                     print(tcolors.OKGREEN + "Replacing poster for " + movie.fullName + tcolors.ENDC)
+                    os.remove(oldPoster) # Remove old poster, as it might have a different extension and thus not be replaced by the copyfile
                     shutil.copyfile(poster, os.path.join(output_dir, directory, os.path.basename(poster)))
                     
 
-def process_shows(input_dir, output_dir):
+def process_shows(input_dir, output_dir, directory_list):
     print(tcolors.FAIL + "Processing shows isn't implemented yet!" + tcolors.ENDC)
     #print("Processing shows")
     #directory_list = os.listdir(input_dir)
@@ -145,10 +146,11 @@ def run():
         print("Output directory doesn't exist!")
         exit(-1)
 
+    directory_list = os.listdir(args.input_dir)
     if folder_type == "movie":
-        process_movies(args.input_dir, args.output_dir)
+        process_movies(args.input_dir, args.output_dir, directory_list)
     else:
-        process_shows(args.input_dir, args.output_dir)
+        process_shows(args.input_dir, args.output_dir, directory_list)
 
 if __name__ == "__main__":
     run()
