@@ -1,0 +1,33 @@
+{
+    "name": "Posterr",
+    "description": "Manage posters for media files",
+    "version": "0.1.0",
+    "author": "Domas Kalinauskas",
+    "manifest_version": 3,
+    "icons": {
+            "16": "images/16.png",
+            "48": "images/48.png",
+            "128": "images/128.png"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_icons": {
+            "16": "images/16.png",
+            "48": "images/48.png",
+            "128": "images/128.png"
+        }
+    },
+    "permissions": [
+        "activeTab",
+        "tabs",
+        "storage",
+        "scripting",
+        "declarativeContent"
+    ],
+    "host_permissions": [
+        "https://theposterdb.com/*"
+    ]
+}
