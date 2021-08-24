@@ -86,13 +86,10 @@ def process_movies(input_dir, output_dir, directory_list):
 
             # There isn't a poster in the movies media directory
             if oldPoster == os.error:
-                if os.path.isdir(os.path.join(output_dir, directory)):
-                    print(tcolors.OKCYAN + movie.fullName + " doesn't have a poster! Copying..." + tcolors.ENDC)
-                    print(poster + " -> " + os.path.join(output_dir, directory, os.path.basename(poster)))
-                    shutil.copyfile(poster, os.path.join(output_dir, directory, os.path.basename(poster)))
-                    print()
-                else:
-                    continue
+                if not os.path.isdir(os.path.join(output_dir, directory)):
+                    os.makedirs(os.path.join(output_dir, directory))
+                print(tcolors.OKCYAN + movie.fullName + " doesn't have a poster! Copying..." + tcolors.ENDC)
+                shutil.copyfile(poster, os.path.join(output_dir, directory, os.path.basename(poster)))
             else:
                 oldPosterHash = sha256sum(oldPoster).strip()
                 # If poster in the movies media directory doesn't match that in the poster directory, replace it
@@ -100,6 +97,7 @@ def process_movies(input_dir, output_dir, directory_list):
                     print(tcolors.OKGREEN + "Replacing poster for " + movie.fullName + tcolors.ENDC)
                     os.remove(oldPoster) # Remove old poster, as it might have a different extension and thus not be replaced by the copyfile
                     shutil.copyfile(poster, os.path.join(output_dir, directory, os.path.basename(poster)))
+            print()
                     
 
 def process_shows(input_dir, output_dir, directory_list):
