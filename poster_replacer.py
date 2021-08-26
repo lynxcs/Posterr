@@ -73,7 +73,6 @@ def processPosterMovie(movie, directory):
     return os.error
 
 def process_movies(input_dir, output_dir, directory_list):
-    print("Processing movies")
     for directory in directory_list:
         print ("Processing directory " + directory)
         movie = Movie(directory)

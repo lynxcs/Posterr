@@ -8,14 +8,19 @@ import poster_replacer
 
 app = Flask(__name__)
 
-# TODO: Get these as command line arguments
-MOVIE_DIR="" # Directory where folders with movies are kept
-MOVIE_POSTER_DIR="" # Directory where to store backup's of posters
+MOVIE_DIR=os.environ.get('MOVIE_DIR', None) # Directory where folders with movies are kept
+MOVIE_POSTER_DIR=os.environ.get('MOVIE_POSTER_DIR', None) # Directory where to store backup's of posters
 TV_DIR="" # Not used yet
 TV_POSTER_DIR="" # Not used yet
 
 @app.route('/upload', methods=['POST'])
 def upload_poster():
+    if MOVIE_DIR is None:
+        print("MOVIE_DIR isn't set!")
+        return '', 500
+    elif MOVIE_POSTER_DIR is None:
+        print("MOVIE_POSTER_DIR isn't set!")
+        return '', 500
     parameters = request.form
     url = parameters['url'] # Download URL of poster
     name = parameters['name'] # Name (Year)
