@@ -6,7 +6,6 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    // TODO: Switch to using declarative content api
     if (changeInfo.status === "complete" && /^https:\/\/theposterdb.com\/poster\/.*/.test(tab.url))
     {
         chrome.scripting.executeScript({
