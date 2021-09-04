@@ -1,0 +1,4 @@
+extension.*
+docker-compose.debug.yml
+__pycache__
+.vscode
