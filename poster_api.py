@@ -3,6 +3,7 @@
 from genericpath import isdir
 import os, argparse, requests
 from flask import request, Flask
+import logging
 
 import poster_replacer
 
@@ -16,10 +17,10 @@ TV_POSTER_DIR="" # Not used yet
 @app.route('/upload', methods=['POST'])
 def upload_poster():
     if MOVIE_DIR is None:
-        print("MOVIE_DIR isn't set!")
+        app.logger.critical("MOVIE_DIR isn't set!")
         return '', 500
     elif MOVIE_POSTER_DIR is None:
-        print("MOVIE_POSTER_DIR isn't set!")
+        app.logger.critical("MOVIE_POSTER_DIR isn't set!")
         return '', 500
     parameters = request.form
     url = parameters['url'] # Download URL of poster
@@ -30,16 +31,16 @@ def upload_poster():
     name = name.translate({ord(c): None for c in '!?@#$:-'})
     name = name.translate({ord(c): '+' for c in '/'})
 
-    print("URL: " + url)
-    print("Name: " + name)
-    print("Type: " + media_type)
+    app.logger.info("URL: " + url)
+    app.logger.info("Name: " + name)
+    app.logger.info("Type: " + media_type)
 
     download_directory = MOVIE_POSTER_DIR if media_type == "Movie" else TV_POSTER_DIR
     download_directory = os.path.join(download_directory, name)
     if not os.path.isdir(download_directory):
         os.makedirs(download_directory)
 
-    print("Path: " + download_directory)
+    app.logger.info("Path: " + download_directory)
     
     download_file = os.path.join(download_directory, "poster")
     r = requests.get(url, stream=True)
@@ -52,9 +53,14 @@ def upload_poster():
         directory_list = [name]
         poster_replacer.process_movies(MOVIE_POSTER_DIR, MOVIE_DIR, directory_list)
     else:
-        print("Downloading media of type '" + media_type + "' isn't supported yet!")
+        app.logger.error("Downloading media of type '" + media_type + "' isn't supported yet!")
     
     return '', 200
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int("57272"))
+
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
