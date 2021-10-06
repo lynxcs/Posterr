@@ -41,6 +41,12 @@ class Movie:
         self.name = folderName[:-7]
         self.year = folderName[-5:][:-1]
 
+class TV:
+    def __init__(self, folderName):
+        self.fullName = folderName
+        self.name = folderName[:-7]
+        self.year = folderName[-5:][:-1]
+
 # Find poster in media movie directory
 def findPosterMovie(movie, directory):
     if not os.path.isdir(directory):
@@ -52,7 +58,6 @@ def findPosterMovie(movie, directory):
             return os.path.join(directory, file)
     # Didn't find a file
     return os.error
-
 # Process the images in the posters movie directory
 def processPosterMovie(movie, directory):
     file_list = os.listdir(directory)
@@ -97,15 +102,117 @@ def process_movies(input_dir, output_dir, directory_list):
                     os.remove(oldPoster) # Remove old poster, as it might have a different extension and thus not be replaced by the copyfile
                     shutil.copyfile(poster, os.path.join(output_dir, directory, os.path.basename(poster)))
             print()
-                    
+
+def findPostersTV(tv, directory, season):
+    if not os.path.isdir(directory):
+        print(tcolors.FAIL + "TV Show " + tv.fullName + " doesn't exist in media!")
+        return os.error
+    if season == -1:
+        file_list = os.listdir(directory)
+        for file in file_list:
+            if "show" in file:
+                return os.path.join(directory, file)
+    else:
+        if season < 10:
+            season_text = "0" + str(season)
+        else:
+            season_text = str(season)
+
+        if not os.path.isdir(os.path.join(directory, "Season " + season_text)):
+            print(tcolors.FAIL + "TV Show " + tv.fullName + " Season " + season_text + " doesn't exist in media!")
+            return os.error
+        file_list = os.listdir(os.path.join(directory, "Season " + season_text))
+        for file in file_list:
+            file_ext = os.path.splitext(file)[1]
+            if "Season" in file and ("jpeg" in file_ext or "png" in file_ext or "jpg" in file_ext):
+                return os.path.join(directory, "Season " + season_text, file)
+    # Didn't find a file
+    return os.error
+# Process the images in the posters tv directory
+def processPosterTV(tv, directory):
+    file_list = os.listdir(directory)
+    poster_list = []
+    for file in file_list:
+        if "Season" not in file and (tv.fullName in file or tv.name in file):
+            # TV Show poster
+            extension = os.path.splitext(file)[1]
+            oldFile = os.path.join(directory, file)
+            newFile = os.path.join(directory, "show" + extension)
+            os.rename(oldFile, newFile)
+            print ("Found poster for " + tv.fullName + " renaming...")
+            poster_list.append(newFile)
+        elif "show" in file:
+            # TV Show poster (already renamed)
+            poster_list.append(os.path.join(directory, file))
+        elif "Season" in file:
+            if tv.fullName in file or tv.name in file:
+                # Rename file
+                season, extension = os.path.splitext(file.split()[-1])
+                oldFile = os.path.join(directory, file)
+                if (int(season) < 10):
+                    newFile = os.path.join(directory, "Season0" + season + extension)
+                else:
+                    newFile = os.path.join(directory, "Season" + season + extension)
+
+                os.rename(oldFile, newFile)
+                print ("Found Season " + season  + " poster for " + tv.fullName + " renaming...")
+                poster_list.append(newFile)
+            else:
+                poster_list.append(os.path.join(directory, file))
+        else:
+            print ("Ignoring " + file + " in " + tv.fullName)
+    # Didn't find a file
+    if len(poster_list) == 0:
+        print(tcolors.FAIL + tv.fullName + " doesn't have a poster!" + tcolors.ENDC)
+        return os.error
+
+    print(tv.fullName + " has " + str(len(poster_list) - 1) + " seasons!")
+    return poster_list
 
 def process_shows(input_dir, output_dir, directory_list):
-    print(tcolors.FAIL + "Processing shows isn't implemented yet!" + tcolors.ENDC)
-    #print("Processing shows")
-    #directory_list = os.listdir(input_dir)
-    #for directory in directory_list:
-    #    print("Checking directory: " + directory)
+    # print(tcolors.FAIL + "Processing shows isn't implemented yet!" + tcolors.ENDC)
+    for directory in directory_list:
+        print ("Processing directory " + directory)
+        tv = TV(directory)
+        poster_list = processPosterTV(tv, os.path.join(input_dir, directory))
+        #old_poster = findPosterTV(tv, os.path.join(output_dir, directory))
+        # If poster exists in directory, continue on checking movie folder
+        if poster_list != os.error:
+            if not os.path.isdir(os.path.join(output_dir, directory)):
+                os.makedirs(os.path.join(output_dir, directory))
 
+            for poster in poster_list:
+                if "show" in poster:
+                    old_poster = findPostersTV(tv, os.path.join(output_dir, directory), -1)
+                    if old_poster == os.error:
+                        print(tcolors.OKCYAN + tv.fullName + " doesn't have a show poster! Copying..." + tcolors.ENDC)
+                        shutil.copyfile(poster, os.path.join(output_dir, directory, os.path.basename(poster)))
+                    else:
+                        posterHash = sha256sum(poster).strip()
+                        oldPosterHash = sha256sum(old_poster).strip()
+                        # If poster in the movies media directory doesn't match that in the poster directory, replace it
+                        if posterHash != oldPosterHash:
+                            print(tcolors.OKGREEN + "Replacing poster for " + tv.fullName + tcolors.ENDC)
+                            os.remove(old_poster) # Remove old poster, as it might have a different extension and thus not be replaced by the copyfile
+                            shutil.copyfile(poster, os.path.join(output_dir, directory, os.path.basename(poster)))
+                elif "Season" in poster:
+                    season = os.path.splitext(poster)[0][-2:]
+                    old_poster = findPostersTV(tv, os.path.join(output_dir, directory), int(season))
+                    if old_poster == os.error:
+                        if not os.path.isdir(os.path.join(output_dir, directory, "Season " + season)):
+                            os.makedirs(os.path.join(output_dir, directory, "Season " + season))
+
+                        print(tcolors.OKCYAN + tv.fullName + " doesn't have a season " + season + " poster! Copying..." + tcolors.ENDC)
+                        shutil.copyfile(poster, os.path.join(output_dir, directory, "Season " + season, os.path.basename(poster)))
+                    else:
+                        posterHash = sha256sum(poster).strip()
+                        oldPosterHash = sha256sum(old_poster).strip()
+                        # If poster in the movies media directory doesn't match that in the poster directory, replace it
+                        if posterHash != oldPosterHash:
+                            print(tcolors.OKGREEN + "Replacing poster for " + tv.fullName + tcolors.ENDC)
+                            os.remove(old_poster) # Remove old poster, as it might have a different extension and thus not be replaced by the copyfile
+                            shutil.copyfile(poster, os.path.join(output_dir, directory, "Season " + season, os.path.basename(poster)))
+        print()
 
 # Tries to infer the type of directory (movie or tv show)
 # Returns "movie", "show" or "none" depending on type inferred
@@ -130,7 +237,7 @@ def run():
     parser.add_argument("output_dir", help="The input directory containing posters", type=str)
     args = parser.parse_args()
 
-    folder_type = infer_type(args.input_dir)
+    folder_type = infer_type(args.output_dir)
     if folder_type == "none":
         print("Can't determine input folder type!")
         exit(-1)
