@@ -5,23 +5,19 @@ import os, argparse, requests
 from flask import request, Flask
 import logging
 
+import cloudscraper
+
 import poster_replacer
 
 app = Flask(__name__)
 
-MOVIE_DIR=os.environ.get('MOVIE_DIR', None) # Directory where folders with movies are kept
-MOVIE_POSTER_DIR=os.environ.get('MOVIE_POSTER_DIR', None) # Directory where to store backup's of posters
-TV_DIR="" # Not used yet
-TV_POSTER_DIR="" # Not used yet
+MOVIE_DIR=os.environ.get('MOVIE_DIR', None)
+MOVIE_POSTER_DIR=os.environ.get('MOVIE_POSTER_DIR', None)
+TV_DIR=os.environ.get('TV_DIR', None)
+TV_POSTER_DIR=os.environ.get('TV_POSTER_DIR')
 
 @app.route('/upload', methods=['POST'])
 def upload_poster():
-    if MOVIE_DIR is None:
-        app.logger.critical("MOVIE_DIR isn't set!")
-        return '', 500
-    elif MOVIE_POSTER_DIR is None:
-        app.logger.critical("MOVIE_POSTER_DIR isn't set!")
-        return '', 500
     parameters = request.form
     url = parameters['url'] # Download URL of poster
     name = parameters['name'] # Name (Year)
@@ -35,23 +31,42 @@ def upload_poster():
     app.logger.info("Name: " + name)
     app.logger.info("Type: " + media_type)
 
+    # Determine if directories for current type are set
+    if media_type == "Movie":
+        if MOVIE_DIR is None:
+            app.logger.critical("MOVIE_DIR isn't set!")
+            return '', 500
+        elif MOVIE_POSTER_DIR is None:
+            app.logger.critical("MOVIE_POSTER_DIR isn't set!")
+            return '', 500
+    elif media_type == "Show":
+        if TV_DIR is None:
+            app.logger.critical("TV_DIR isn't set!")
+            return '', 500
+        elif TV_POSTER_DIR is None:
+            app.logger.critical("TV_POSTER_DIR isn't set!")
+            return '', 500
+
     download_directory = MOVIE_POSTER_DIR if media_type == "Movie" else TV_POSTER_DIR
     download_directory = os.path.join(download_directory, name)
     if not os.path.isdir(download_directory):
         os.makedirs(download_directory)
 
     app.logger.info("Path: " + download_directory)
-    
-    download_file = os.path.join(download_directory, "poster")
-    r = requests.get(url, stream=True)
+
+    scraper = cloudscraper.create_scraper()
+    r = scraper.get(url, stream=True)
     ext = r.headers['content-type'].split('/')[-1] # converts response headers mime type to an extension (may not work with everything)
+    download_file = os.path.join(download_directory, "poster")
     with open("%s.%s" % (download_file, ext), 'wb') as f: # open the file to write as binary - replace 'wb' with 'w' for text files
         for chunk in r.iter_content(1024): # iterate on stream using 1KB packets
             f.write(chunk) # write the file
 
+    directory_list = [name]
     if media_type == "Movie":
-        directory_list = [name]
         poster_replacer.process_movies(MOVIE_POSTER_DIR, MOVIE_DIR, directory_list)
+    elif media_type == "Show":
+        poster_replacer.process_movies(TV_POSTER_DIR, TV_DIR, directory_list)
     else:
         app.logger.error("Downloading media of type '" + media_type + "' isn't supported yet!")
     
