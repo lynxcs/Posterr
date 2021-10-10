@@ -54,19 +54,19 @@ def upload_poster():
     download_directory = MOVIE_POSTER_DIR if media_type == "Movie" else TV_POSTER_DIR
     download_directory = os.path.join(download_directory, name)
     if not os.path.isdir(download_directory):
-        os.makedirs(download_directory)
+        os.makedirs(download_directory, 0o777)
 
     app.logger.info("Path: " + download_directory)
 
     scraper = cloudscraper.create_scraper()
     r = scraper.get(url, stream=True)
-    ext = r.headers['content-type'].split('/')[-1] # converts response headers mime type to an extension (may not work with everything)
-    if "html" in ext:
+    filename = r.headers['content-disposition'].split('"')[1]
+
+    if "html" in r.headers['content-type'].split('/')[-1]:
         app.logger.critical("Failed to get poster!");
         return '', 500
 
-    download_file = os.path.join(download_directory, "poster")
-    with open("%s.%s" % (download_file, ext), 'wb') as f: # open the file to write as binary - replace 'wb' with 'w' for text files
+    with open(os.path.join(download_directory, filename), 'wb') as f: # open the file to write as binary - replace 'wb' with 'w' for text files
         for chunk in r.iter_content(1024): # iterate on stream using 1KB packets
             f.write(chunk) # write the file
 
