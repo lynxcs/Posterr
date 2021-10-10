@@ -27,6 +27,10 @@ def upload_poster():
     name = name.translate({ord(c): None for c in '!?@#$:-'})
     name = name.translate({ord(c): '+' for c in '/'})
 
+    if "/login" in url:
+        app.logger.critical("You have to be logged in to download!");
+        return '', 500
+
     app.logger.info("URL: " + url)
     app.logger.info("Name: " + name)
     app.logger.info("Type: " + media_type)
@@ -57,6 +61,10 @@ def upload_poster():
     scraper = cloudscraper.create_scraper()
     r = scraper.get(url, stream=True)
     ext = r.headers['content-type'].split('/')[-1] # converts response headers mime type to an extension (may not work with everything)
+    if "html" in ext:
+        app.logger.critical("Failed to get poster!");
+        return '', 500
+
     download_file = os.path.join(download_directory, "poster")
     with open("%s.%s" % (download_file, ext), 'wb') as f: # open the file to write as binary - replace 'wb' with 'w' for text files
         for chunk in r.iter_content(1024): # iterate on stream using 1KB packets
