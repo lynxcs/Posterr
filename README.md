@@ -6,7 +6,7 @@ This application manages posters from a poster directory, (re)placing posters in
 
 The application also comes with a chrome extension that adds a button to [theposterdb](https://theposterdb.com) which interacts with a flask server
 
-Currently, everything is still in development, and only movie poster management is working, with support for TV shows and collections coming soon.
+Currently, everything is still in development, and only movie and TV show poster management is working, with support for collections coming soon.
 
 ### Installation & usage
 #### **Chrome extension**
@@ -19,21 +19,20 @@ To install the chrome extension:
 To use the chrome extension:
 * Press on the extension icon to set the base url for the poster API server
 * Go to any theposterdb poster page (e.g "https://theposterdb.com/poster/4793")
-* Press the yellow button "Upload to Posterr" (*Currently only works for movies!*)
+* Press the yellow button "Upload to Posterr"
 
 **NOTE** This extension doesn't work without the poster API!
 #### **Poster API**
 To install the poster API on docker:
 * Docker url is: domaskal/posterr:latest
-* Two environment variables need to be defined: MOVIE_DIR and MOVIE_POSTER_DIR
-* Mount volumes to the same directories as MOVIE_DIR and MOVIE_POSTER_DIR
-
-To install the poster API another way:
-* Launch with `python3 poster_api.py`, don't forget to define MOVIE_DIR and MOVIE_POSTER_DIR
+* Four environment variables need to be defined: MOVIE_DIR, MOVIE_POSTER_DIR, TV_DIR, TV_POSTER_DIR
+* Mount volumes to the same directories as MOVIE_DIR, MOVIE_POSTER_DIR, TV_DIR, TV_POSTER_DIR
 
 *Environment Variables:*
-* MOVIE_DIR - Directory where all the media is stored (directory structure: "MOVIE_DIR/Title (Year)")
-* MOVIE_POSTER_DIR - Directory where the posters should be stored
+* MOVIE_DIR - Directory where all the movie media is stored (directory structure: "MOVIE_DIR/Title (Year)")
+* MOVIE_POSTER_DIR - Directory where the movie posters should be stored
+* TV_DIR - Directory where all the TV media is stored (directory structure: "TV_DIR/Title (Year)")
+* TV_POSTER_DIR - Directory where the TV posters should be stored
 
 #### **Poster replacer**
 The poster replacer script usage is very simple:
