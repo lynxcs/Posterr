@@ -66,7 +66,7 @@ def processPosterMovie(movie, directory):
             extension = os.path.splitext(file)[1]
             oldFile = os.path.join(directory, file)
             newFile = os.path.join(directory, "poster" + extension)
-            os.rename(oldFile, newFile)
+            os.replace(oldFile, newFile)
             print ("Found poster for " + movie.fullName + " renaming...")
             return newFile
         elif "poster" in file:
@@ -138,7 +138,7 @@ def processPosterTV(tv, directory):
             extension = os.path.splitext(file)[1]
             oldFile = os.path.join(directory, file)
             newFile = os.path.join(directory, "show" + extension)
-            os.rename(oldFile, newFile)
+            os.replace(oldFile, newFile)
             print ("Found poster for " + tv.fullName + " renaming...")
             poster_list.append(newFile)
         elif "show" in file:
@@ -154,7 +154,7 @@ def processPosterTV(tv, directory):
                 else:
                     newFile = os.path.join(directory, "Season" + season + extension)
 
-                os.rename(oldFile, newFile)
+                os.replace(oldFile, newFile)
                 print ("Found Season " + season  + " poster for " + tv.fullName + " renaming...")
                 poster_list.append(newFile)
             else:
