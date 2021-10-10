@@ -74,7 +74,7 @@ def upload_poster():
     if media_type == "Movie":
         poster_replacer.process_movies(MOVIE_POSTER_DIR, MOVIE_DIR, directory_list)
     elif media_type == "Show":
-        poster_replacer.process_movies(TV_POSTER_DIR, TV_DIR, directory_list)
+        poster_replacer.process_shows(TV_POSTER_DIR, TV_DIR, directory_list)
     else:
         app.logger.error("Downloading media of type '" + media_type + "' isn't supported yet!")
     
