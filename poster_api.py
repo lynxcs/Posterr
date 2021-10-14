@@ -16,6 +16,12 @@ MOVIE_POSTER_DIR=os.environ.get('MOVIE_POSTER_DIR', None)
 TV_DIR=os.environ.get('TV_DIR', None)
 TV_POSTER_DIR=os.environ.get('TV_POSTER_DIR', None)
 
+# TODO: Determine all characters and how they are modified in radarr / sonarr
+def normalize_name(name):
+    name = name.translate({ord(c): None for c in '!?@#$:'})
+    name = name.translate({ord(c): '+' for c in '/-'})
+    return name
+
 @app.route('/upload', methods=['POST'])
 def upload_poster():
     parameters = request.form
@@ -27,10 +33,8 @@ def upload_poster():
         app.logger.critical("You have to be logged in to download!");
         return '', 500
 
-    # TODO: Determine all characters and how they are modified in radarr / sonarr
-    name = name.translate({ord(c): None for c in '!?@#$:-'})
-    name = name.translate({ord(c): '+' for c in '/'})
-    name = (name.split(")")[0]) + ")"
+    name = normalize_name(name)
+    name = (name.split(")")[0]) + ")" # Only select first part of title
 
     app.logger.info("URL: " + url)
     app.logger.info("Name: " + name)
@@ -63,7 +67,8 @@ def upload_poster():
 
     scraper = cloudscraper.create_scraper()
     r = scraper.get(url, stream=True)
-    filename = r.headers['content-disposition'].split('"')[1]
+
+    filename = normalize_name(r.headers['content-disposition'].split('"')[1])
 
     if "html" in r.headers['content-type'].split('/')[-1]:
         app.logger.critical("Failed to get poster!");
@@ -85,8 +90,7 @@ def upload_poster():
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=int("57272"))
-
-if __name__ != '__main__':
+else:
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
