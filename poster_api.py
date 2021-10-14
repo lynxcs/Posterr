@@ -19,7 +19,7 @@ TV_POSTER_DIR=os.environ.get('TV_POSTER_DIR', None)
 # TODO: Determine all characters and how they are modified in radarr / sonarr
 def normalize_name(name):
     name = name.translate({ord(c): None for c in '!?@#$:'})
-    name = name.translate({ord(c): '+' for c in '/-'})
+    name = name.translate({ord(c): '+' for c in '/'})
     return name
 
 @app.route('/upload', methods=['POST'])
