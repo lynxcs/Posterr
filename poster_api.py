@@ -29,10 +29,6 @@ def upload_poster():
     name = parameters['name'] # Name (Year)
     media_type = parameters['type'] # Movie or Show
 
-    if "/login" in url:
-        app.logger.critical("You have to be logged in to download!");
-        return '', 500
-
     name = normalize_name(name)
     name = (name.split(")")[0]) + ")" # Only select first part of title
 
